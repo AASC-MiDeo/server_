@@ -4,7 +4,7 @@ const app = express();
 const port = 3000; //3000번 사용
 
 const admin = require('firebase-admin');
-const serviceAccount = require('./aasc-mideo-firebase-adminsdk-1hkif-155f22fce3.json');
+const serviceAccount = require('./aasc-mideo-d8cd478d2c48.json');
 let registrationTokens;
 
 admin.initializeApp({
@@ -21,18 +21,39 @@ app.use(bodyParser.json());
 // POST 요청 처리
 app.post('/', (req, res) => {
   const { helmet, temperature, sound, gas } = req.body;
-
-  console.log('Helmet:', helmet);
-  console.log('Temperature:', temperature);
-  console.log('Sound:', sound);
-  console.log('Gas:', gas);
+  console.log(req.body);
 
   if(validateInputs(helmet, temperature, sound, gas)) { //유효성 검사 이후
     let [errNum, warnings] = checkWarnings(helmet, temperature, sound, gas); //경고 메시지 생성
-    if(errNum.length === 0) console.log('이상 X');
+    if(errNum.length === 0) console.log('이상 X'); 
+
+    //플러터로 보낼 payload
+    
+    const payload = {
+      data: {
+        helmet: `${helmet}`,
+        Temperature: `${temperature}`,
+        Sound: `${sound}`,
+        Gas: `${gas}`,
+      },
+      warnings : {
+        errNum : `${errNum}`,
+        warnings : `${warnings}`
+      }
+    };
+    
+
+
+    admin.messaging().send(registrationTokens, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+    });
   }
-  
-  // HW단으로 응답
+
+    // HW단으로 응답
   res.send('to HW : Data received successfully');
 });
 
@@ -50,4 +71,6 @@ app.post('/register', async (req, res) => {
   // 이곳에서 받은 토큰을 데이터베이스에 저장하거나, 바로 푸시 알림을 보낼 수 있습니다.
   // 성공적으로 토큰을 받았다는 응답을 클라이언트에게 보냅니다.
   res.status(200).send('Token registered successfully');
+
+    
 });
