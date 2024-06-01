@@ -44,8 +44,8 @@ app.listen(port, () => {
 
 // 클라이언트로부터 FCM 등록 토큰을 받기 위한 POST 요청 처리
 app.post('/register', async (req, res) => {
-  token = req.body.token; // 클라이언트로부터 받은 토큰
-  console.log('Received FCM Token:', token);
+  registrationTokens = req.body.token; // 클라이언트로부터 받은 토큰
+  console.log('Received FCM Token:', registrationTokens);
 
   // 이곳에서 받은 토큰을 데이터베이스에 저장하거나, 바로 푸시 알림을 보낼 수 있습니다.
   // 성공적으로 토큰을 받았다는 응답을 클라이언트에게 보냅니다.
