@@ -5,7 +5,7 @@ const port = 3000; //3000번 사용
 
 const admin = require('firebase-admin');
 const serviceAccount = require('./aasc-mideo-d8cd478d2c48.json');
-let registrationTokens;
+let registrationTokens = '';
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -19,7 +19,7 @@ const checkWarnings = require('./warnings'); //입력 받은 데이터 값이 �
 app.use(bodyParser.json());
 
 // POST 요청 처리
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
   const { helmet, temperature, sound, gas } = req.body;
   console.log(req.body);
 
@@ -34,7 +34,7 @@ app.post('/', (req, res) => {
         helmet: `${helmet}`,
         Temperature: `${temperature}`,
         Sound: `${sound}`,
-        Gas: `${gas}`,
+        Gas: `${gas}`, 
       },
       warnings : {
         errNum : `${errNum}`,
@@ -42,9 +42,8 @@ app.post('/', (req, res) => {
       }
     };
     
-
-
-    admin.messaging().send(registrationTokens, payload)
+    console.log(payload);
+    admin.messaging().sendToDevice(registrationTokens, payload)
       .then((response) => {
         console.log('Successfully sent message:', response);
       })
@@ -57,20 +56,21 @@ app.post('/', (req, res) => {
   res.send('to HW : Data received successfully');
 });
 
-// 서버 시작
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
 
-
-// 클라이언트로부터 FCM 등록 토큰을 받기 위한 POST 요청 처리
 app.post('/register', async (req, res) => {
-  registrationTokens = req.body.token; // 클라이언트로부터 받은 토큰
+  const token = req.body.token;
+  if (!registrationTokens.includes(token)) {
+    //registrationTokens.push(token); // 클라이언트로부터 받은 토큰을 배열에 저장
+    registrationTokens = token;
+  }
   console.log('Received FCM Token:', registrationTokens);
 
   // 이곳에서 받은 토큰을 데이터베이스에 저장하거나, 바로 푸시 알림을 보낼 수 있습니다.
   // 성공적으로 토큰을 받았다는 응답을 클라이언트에게 보냅니다.
   res.status(200).send('Token registered successfully');
+});
 
-    
+// 서버 시작
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
 });
