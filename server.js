@@ -60,13 +60,10 @@ app.post('/', async (req, res) => {
 app.post('/register', async (req, res) => {
   const token = req.body.token;
   if (!registrationTokens.includes(token)) {
-    //registrationTokens.push(token); // 클라이언트로부터 받은 토큰을 배열에 저장
     registrationTokens = token;
   }
   console.log('Received FCM Token:', registrationTokens);
 
-  // 이곳에서 받은 토큰을 데이터베이스에 저장하거나, 바로 푸시 알림을 보낼 수 있습니다.
-  // 성공적으로 토큰을 받았다는 응답을 클라이언트에게 보냅니다.
   res.status(200).send('Token registered successfully');
 });
 
